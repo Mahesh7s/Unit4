@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Preserve Memories</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Young+Serif&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="signup.css">
+</head>
+<body class="exo-2-uniquifier">
+	<h1>Let's preserve your Memories</h1>
+	<div id="container">
+		<h2>Register Here</h2>
+		<div id="form">
+		<input type="text" id="signupname" placeholder="Enter Your name:">
+		<input type="email" id="signupemail" placeholder="Enter Your email:">
+		<input type="password" id="signuppassword" placeholder="Enter your password:">
+		<select name="role" id="userrole">
+			<option value="">Select the role:</option>
+			<option value="admin">Admin</option>
+			<option value="user">User</option>
+		</select>
+		<button id="signup">Register</button>
+		</div>
+		<p>Already have an account? <a href="./login.html" target="_blank">Login</a></p>
+		<p id="signup-msg"></p>
+	</div>
+	
+</body>
+<script type="module" src="auth.js"></script>
+</html>

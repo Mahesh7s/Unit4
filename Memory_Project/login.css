@@ -1,0 +1,57 @@
+.exo-2-uniquifier {
+  font-family: "Exo 2", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: weight;
+  font-style: normal;
+  height:100vh;
+}
+
+
+h1{
+	text-align: center;
+	color: orange;
+}
+
+#container{
+	
+border: 2px solid;
+width:90%;
+max-width:80%;
+min-width: 50%;
+margin:auto;
+margin-top: 10%;
+display:flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+background-color: aliceblue;
+
+}
+#form{
+	width:50%;
+	/* border: 2px solid; */
+}
+input,button{
+	width:100%;
+	margin:10px;
+	padding:10px;
+	font-size: large;
+	border-radius: 5px;
+	background-color: azure;
+	border: 1px solid grey;
+	text-align: center;
+
+}
+
+#login{
+	color:azure;
+	background-color: rgb(187, 121, 35);
+	border: none;
+}
+a{
+	text-decoration: none;
+	font-weight: bold;
+	color: brown;
+	font-weight: large;
+	margin-left: 5px;
+}

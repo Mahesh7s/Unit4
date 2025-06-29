@@ -1,31 +1,32 @@
-import React, { use, useState } from "react";
-import {Link} from "react-router-dom"
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function Search(){
-	let navigate = useNavigate();
-	let [city,setCity] = useState("")
-	useEffect(() => {
-    // If city is empty, do nothing
-    if (city.trim() === "") return;
+export default function Search() {
+  const navigate = useNavigate();
+  const [city, setCity] = useState("");
 
-    // Set a timeout to navigate after 800ms
-    const delay = setTimeout(() => {
+  const handleSearch = () => {
+    if (city.trim() !== "") {
       navigate(`/weather/${city}`);
-    }, 800);
+    }
+  };
 
-    // Clear previous timeout if user types again
-    return () => clearTimeout(delay);
-  }, [city]);
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
 
   return (
     <div>
       <input
         type="text"
-        placeholder="Start typing city name..."
+        placeholder="Enter city name..."
         value={city}
         onChange={(e) => setCity(e.target.value)}
+        onKeyDown={handleKeyDown}
       />
+      <button onClick={handleSearch}>Search</button>
     </div>
   );
 }

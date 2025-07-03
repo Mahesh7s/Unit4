@@ -106,7 +106,7 @@ useEffect(()=>{
 			<div key={idx} style={{border:"2px solid",margin:"20px",borderRadius:"10px",padding:"5px"}}>
 				<h5>Title:{task.title}</h5>
 				<p><b>Description:</b>{task.description}</p>
-				<p  style={{textDecoration:task.status?"line-trough":"none"}}><b>Status: </b><span>{task.status?"Completed":"Not Completed"}</span></p>
+				<p ><b>Status: </b><span style={{textDecoration:task.status?"line-through":""}}>{task.status?"Completed":"Not Completed"}</span></p>
 				<button onClick={()=>toggle(task.id)} style={styles.button}>Toggle Status</button>
 				</div>
 		))

@@ -1,9 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
+import useCurrentLocation from '../hooks/useCurrentLocation';
+import useGeofence from '../hooks/useGeoFence';
 import SearchBar from './SearchBar';
+import { fetchPOIs } from '../utils/fetchPOIs';
 
 const defaultIcon = new L.Icon({
   iconUrl: 'https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png',
@@ -16,63 +19,73 @@ const defaultIcon = new L.Icon({
 });
 
 const MapComponent = () => {
-  const [userLocation, setUserLocation] = useState(null);
+  const userLocation = useCurrentLocation();
   const [destination, setDestination] = useState(null);
+  const [poiList, setPoiList] = useState([]);
   const mapRef = useRef(null);
 
-  // Get current location
+  // Fetch POIs when userLocation changes
   useEffect(() => {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        setUserLocation([latitude, longitude]);
-      },
-      (err) => {
-        console.error("Location error:", err);
-        alert("Could not get location");
+    const loadPOIs = async () => {
+      if (userLocation) {
+        const pois = await fetchPOIs(userLocation, 1000);
+        setPoiList(pois);
       }
-    );
-  }, []);
+    };
+    loadPOIs();
+  }, [userLocation]);
 
-  // Fly to destination when updated
+  // Recenter map when destination changes
   useEffect(() => {
     if (destination && mapRef.current) {
-      console.log("📍 Flying to destination:", destination);
+      console.log('📍 flyTo triggered:', destination);
       mapRef.current.flyTo(destination, 14, { duration: 1.5 });
     }
   }, [destination]);
 
+  // Geofence logic
+  useGeofence(userLocation, destination, 200);
+
+  const routePath = useMemo(() => {
+    return userLocation && destination ? [userLocation, destination] : [];
+  }, [userLocation, destination]);
+
   return (
     <div className="relative h-screen w-full">
-      <SearchBar onSelectLocation={setDestination} />
-
+      <SearchBar onSelectLocation={(coords) => {
+        console.log("✅ Destination selected:", coords);
+        setDestination(coords);
+      }} />
       {userLocation ? (
         <MapContainer
           center={userLocation}
           zoom={14}
           style={{ height: '100%', width: '100%' }}
-          whenCreated={(mapInstance) => (mapRef.current = mapInstance)}
+          whenCreated={(map) => {
+            mapRef.current = map;
+          }}
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-
-          {/* User Marker */}
           <Marker position={userLocation} icon={defaultIcon}>
             <Popup>Your Location</Popup>
           </Marker>
-
-          {/* Destination Marker */}
           {destination && (
             <>
               <Marker position={destination} icon={defaultIcon}>
                 <Popup>Destination</Popup>
               </Marker>
-              <Polyline positions={[userLocation, destination]} color="blue" />
+              <Polyline positions={routePath} color="blue" />
             </>
           )}
+          {poiList.map((poi) => (
+            <Marker key={poi.id} position={[poi.lat, poi.lon]} icon={defaultIcon}>
+              <Popup>{poi.name}</Popup>
+            </Marker>
+          ))}
         </MapContainer>
       ) : (
-        <div className="flex justify-center items-center h-full">
-          <p>Getting current location...</p>
+        <div className="flex items-center justify-center h-full">
+          <p>📍 Getting your current location...</p>
         </div>
       )}
     </div>

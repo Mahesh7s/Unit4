@@ -1,62 +1,63 @@
-import CalendarHeatmap from 'react-calendar-heatmap';
-import 'react-calendar-heatmap/dist/styles.css';
 import { useEffect, useState } from 'react';
-import { ref, get } from 'firebase/database';
 import { db } from '../services/firebase';
 import { useAuth } from '../contexts/AuthContext';
-import { subDays, format } from 'date-fns';
+import { ref, get } from 'firebase/database';
+import { format, subDays } from 'date-fns';
 
 const HeatmapCalendar = () => {
   const { user } = useAuth();
-  const [logDates, setLogDates] = useState([]);
+  const [activityMap, setActivityMap] = useState({});
 
   useEffect(() => {
     const fetchLogs = async () => {
+      if (!user) return;
+
       try {
         const snap = await get(ref(db, `logs/${user.uid}`));
         if (snap.exists()) {
-          const logs = snap.val();
-          const dates = Object.keys(logs);
-          const heatmapData = dates.map((date) => ({
-            date,
-            count: 1, // All logged days have count 1
-          }));
-          setLogDates(heatmapData);
+          const data = snap.val();
+          const map = {};
+          for (let date in data) {
+            map[date] = true; // could be extended to count-based intensity
+          }
+          setActivityMap(map);
         }
       } catch (err) {
-        console.error('Failed to fetch logs:', err);
+        console.error('❌ Error loading heatmap:', err);
       }
     };
 
     fetchLogs();
-  }, [user.uid]);
+  }, [user]);
 
-  const endDate = new Date();
-  const startDate = subDays(endDate, 60); // Show last 60 days
+  const today = new Date();
+  const daysToShow = 42; // 6 weeks
+
+  const days = Array.from({ length: daysToShow }, (_, i) => {
+    const date = subDays(today, i);
+    const dateStr = format(date, 'yyyy-MM-dd');
+    return {
+      date,
+      key: dateStr,
+      active: activityMap[dateStr],
+    };
+  }).reverse(); // so calendar flows left → right
 
   return (
-    <div className="bg-white p-4 rounded shadow mt-6">
-      <h3 className="text-lg font-semibold mb-2">🔥 Productivity Streak</h3>
-      <CalendarHeatmap
-        startDate={startDate}
-        endDate={endDate}
-        values={logDates}
-        classForValue={(value) => {
-          if (!value) return 'color-empty';
-          return 'color-scale-1';
-        }}
-        showWeekdayLabels={true}
-        tooltipDataAttrs={(value) => {
-          if (value.date) {
-            return {
-              'data-tip': `✅ Logged on ${format(new Date(value.date), 'MMM d')}`,
-            };
-          }
-          return {
-            'data-tip': 'No entry',
-          };
-        }}
-      />
+    <div className="max-w-3xl mx-auto mt-6">
+      <h3 className="text-lg font-semibold mb-2">📅 Activity Heatmap</h3>
+      <div className="grid grid-cols-7 gap-1">
+        {days.map((day) => (
+          <div
+            key={day.key}
+            title={day.key}
+            className={`w-6 h-6 rounded-sm ${
+              day.active ? 'bg-green-600' : 'bg-gray-200'
+            }`}
+          />
+        ))}
+      </div>
+      <p className="text-sm text-gray-500 mt-2">Last {daysToShow} days of activity</p>
     </div>
   );
 };

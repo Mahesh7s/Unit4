@@ -4,6 +4,7 @@ import { ref, set } from 'firebase/database';
 import { auth, db } from '../services/firebase';
 import { useNavigate, Link } from 'react-router-dom';
 
+import { signOut } from 'firebase/auth'
 const RegisterPage = () => {
   const [form, setForm] = useState({ email: '', password: '', role: 'student' });
   const [error, setError] = useState('');
@@ -19,7 +20,11 @@ const RegisterPage = () => {
         email: form.email,
         role: form.role,
       });
-           navigate("/")
+	   await signOut(auth); 
+
+    navigate("/")
+
+
     } catch (err) {
       setError('Registration failed. Try a stronger password.');
       console.error(err);

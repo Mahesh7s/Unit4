@@ -16,19 +16,20 @@ function App() {
     <Routes>
       {/* Default route redirect based on login & role */}
       <Route
-        path="/"
-        element={
-          user ? (
-            role === 'mentor' ? (
-              <Navigate to="/mentor" />
-            ) : (
-              <Navigate to="/student" />
-            )
-          ) : (
-            <LoginPage />
-          )
-        }
-      />
+  path="/"
+  element={
+    user ? (
+      role === 'mentor' ? (
+        <Navigate to="/mentor" />
+      ) : (
+        <Navigate to="/student" />
+      )
+    ) : (
+      <LoginPage />
+    )
+  }
+/>
+
 
       <Route path="/register" element={<RegisterPage />} />
 

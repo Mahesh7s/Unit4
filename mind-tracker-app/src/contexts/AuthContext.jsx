@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../services/firebase';
 import {
   createUserWithEmailAndPassword,
@@ -15,24 +16,29 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
-  // 🔐 Register a new user with role
   const registerUser = async (email, password, selectedRole) => {
     const userCred = await createUserWithEmailAndPassword(auth, email, password);
     await set(ref(db, `users/${userCred.user.uid}`), {
       email,
       role: selectedRole,
     });
+    navigate('/'); // redirect to login
   };
 
-  // 🔐 Login existing user
   const loginUser = async (email, password) => {
     await signInWithEmailAndPassword(auth, email, password);
+    // Redirection will happen in App.jsx based on role
   };
 
-  const logout = () => signOut(auth);
+  const logout = async () => {
+    await signOut(auth);
+    setUser(null);
+    setRole(null);
+    navigate('/'); // redirect to login
+  };
 
-  // 👁️ Track current user & role from DB
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {

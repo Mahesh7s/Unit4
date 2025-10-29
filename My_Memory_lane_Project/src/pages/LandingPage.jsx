@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Brain, ArrowRight, Heart, Camera, Clock, Users, Star, Shield, Upload, Map, Sparkles } from 'lucide-react';
+import { Brain, ArrowRight, Heart, Camera, Clock, Users, Star, Shield, Image, Video, Mic, Map, Sparkles, BookOpen, Share2, Download } from 'lucide-react';
 
 const LandingPage = () => {
   const sampleMemories = [
@@ -30,49 +30,70 @@ const LandingPage = () => {
 
   const features = [
     {
-      icon: Upload,
-      title: "Cloudinary Media Storage",
-      description: "Upload images, videos, and audio files directly to secure cloud storage with lightning-fast performance"
+      icon: Image,
+      title: "Photo Memories",
+      description: "Preserve your precious moments with high-quality photo uploads. Capture birthdays, vacations, and everyday magic."
     },
     {
-      icon: Clock,
-      title: "Timeline View",
-      description: "See your memories organized chronologically in a beautiful, interactive timeline interface"
+      icon: Video,
+      title: "Video Stories",
+      description: "Save life's moving moments with video uploads. Relive celebrations, adventures, and special events in motion."
     },
     {
-      icon: Users,
-      title: "Collaborative Albums",
-      description: "Create shared albums and invite friends to contribute their memories for collective storytelling"
+      icon: Mic,
+      title: "Voice Notes",
+      description: "Add personal voice recordings to your memories. Hear the laughter, stories, and emotions again anytime."
+    },
+    {
+      icon: BookOpen,
+      title: "Digital Journal",
+      description: "Write detailed stories alongside your media. Document the who, what, when, and why of each memory."
+    },
+    {
+      icon: Map,
+      title: "Location Tracking",
+      description: "Automatically tag locations and create memory maps. See where your life's journey has taken you."
     },
     {
       icon: Star,
       title: "Memory Milestones",
-      description: "Mark special moments and achievements with milestone highlights that stand out in your timeline"
+      description: "Highlight special achievements and important life events. Mark birthdays, anniversaries, and big accomplishments."
     },
     {
-      icon: Heart,
-      title: "Reminisce Feature",
-      description: "Rediscover random memories from your past with a single click and relive those precious moments"
+      icon: Users,
+      title: "Family Sharing",
+      description: "Create shared albums with family and friends. Build collective memories that everyone can contribute to."
     },
     {
-      icon: Shield,
-      title: "Secure & Private",
-      description: "Your memories are protected with Firebase security and you control what's public or private"
+      icon: Share2,
+      title: "Easy Sharing",
+      description: "Share your favorite memories with loved ones. Create beautiful links to send via message or email."
     },
     {
-      icon: Camera,
-      title: "Voice Notes Support",
-      description: "Add personal voice recordings to your memories for a more intimate and emotional connection"
+      icon: Download,
+      title: "Export & Backup",
+      description: "Download your memories or create beautiful PDF keepsakes. Never worry about losing your precious moments."
+    }
+  ];
+
+  const howItWorks = [
+    {
+      step: "1",
+      title: "Capture Your Moments",
+      description: "Take photos, record videos, or save voice notes from your daily life and special occasions.",
+      icon: Camera
     },
     {
-      icon: Map,
-      title: "Location Mapping",
-      description: "Tag your memories with locations and view them on an interactive map for geographic storytelling"
+      step: "2",
+      title: "Organize & Describe",
+      description: "Add titles, descriptions, dates, and tags to create meaningful memory stories.",
+      icon: BookOpen
     },
     {
-      icon: Sparkles,
-      title: "AI-Generated Videos",
-      description: "Transform your memories into beautiful slideshow videos with AI-powered automation"
+      step: "3",
+      title: "Relive & Share",
+      description: "Browse your timeline, rediscover old memories, and share special moments with loved ones.",
+      icon: Heart
     }
   ];
 
@@ -93,7 +114,7 @@ const LandingPage = () => {
               <div className="flex items-center gap-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md px-6 py-3 rounded-full shadow-lg">
                 <Brain className="w-8 h-8 text-purple-600 dark:text-purple-400" />
                 <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  MemoryLane Personal
+                  MemoryLane
                 </span>
               </div>
             </motion.div>
@@ -104,9 +125,9 @@ const LandingPage = () => {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="text-5xl md:text-7xl font-bold text-gray-900 dark:text-white mb-6"
             >
-              Your Life's
+              Preserve Life's
               <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent block">
-                Beautiful Story
+                Precious Moments
               </span>
             </motion.h1>
 
@@ -116,8 +137,8 @@ const LandingPage = () => {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="text-xl text-gray-600 dark:text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed"
             >
-              Capture, organize, and relive your most precious memories with photos, videos, and voice notes. 
-              Create a digital timeline of your life's journey with secure cloud storage and beautiful presentation.
+              Capture, organize, and relive your most cherished memories with photos, videos, and voice notes. 
+              Create a beautiful digital timeline of your life's journey that you can treasure forever.
             </motion.p>
 
             <motion.div
@@ -130,22 +151,58 @@ const LandingPage = () => {
                 to="/register"
                 className="group px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-2xl hover:shadow-2xl hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
               >
-                Start Your Journey
+                Start Your Memory Journey
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
-              </Link>
-              <Link
-                to="/login"
-                className="px-8 py-4 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md text-purple-600 dark:text-purple-400 font-semibold rounded-2xl border border-purple-200 dark:border-purple-700 hover:bg-white dark:hover:bg-gray-800 hover:shadow-lg transition-all duration-300"
-              >
-                Sign In
               </Link>
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Sample Timeline Section */}
+      {/* How It Works Section */}
       <section className="py-20 bg-white/50 dark:bg-gray-800/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              How MemoryLane Works
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              Simple steps to preserve your memories forever
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {howItWorks.map((step, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                className="text-center"
+              >
+                <div className="w-20 h-20 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <step.icon className="w-10 h-10 text-white" />
+                </div>
+                <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-full flex items-center justify-center mx-auto mb-4 font-bold text-sm">
+                  {step.step}
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">{step.title}</h3>
+                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">{step.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Sample Timeline Section */}
+      <section className="py-20 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -158,7 +215,7 @@ const LandingPage = () => {
               See Your Memories Come to Life
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Experience how your memories will look in our beautiful timeline view with Cloudinary-powered media storage
+              Experience how your memories will look in our beautiful timeline view
             </p>
           </motion.div>
 
@@ -216,7 +273,7 @@ const LandingPage = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-900">
+      <section className="py-20 bg-white dark:bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -229,7 +286,7 @@ const LandingPage = () => {
               Everything You Need to Preserve Your Memories
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Powerful features designed to make memory keeping effortless, secure, and enjoyable
+              Powerful features designed to make memory keeping effortless and meaningful
             </p>
           </motion.div>
 
@@ -241,7 +298,7 @@ const LandingPage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-gray-100 dark:border-gray-700"
               >
                 <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl flex items-center justify-center mb-6">
                   <feature.icon className="w-6 h-6 text-white" />
@@ -254,8 +311,8 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Technology Stack Section */}
-      <section className="py-20 bg-white dark:bg-gray-800">
+      {/* Benefits Section */}
+      <section className="py-20 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -265,20 +322,33 @@ const LandingPage = () => {
             className="text-center mb-16"
           >
             <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Built with Modern Technology
+              Why Choose MemoryLane?
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Powered by industry-leading technologies for performance, security, and reliability
-            </p>
           </motion.div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
-              { name: 'React', description: 'Modern UI Framework' },
-              { name: 'Firebase', description: 'Authentication & Database' },
-              { name: 'Cloudinary', description: 'Media Storage & CDN' },
-              { name: 'Tailwind CSS', description: 'Beautiful Styling' }
-            ].map((tech, index) => (
+              {
+                icon: Shield,
+                title: "Private & Secure",
+                description: "Your memories are protected with enterprise-grade security"
+              },
+              {
+                icon: Sparkles,
+                title: "Easy to Use",
+                description: "Beautiful, intuitive interface that anyone can use"
+              },
+              {
+                icon: Heart,
+                title: "Emotional Connection",
+                description: "Relive your memories with photos, videos, and voice notes"
+              },
+              {
+                icon: Users,
+                title: "Family Friendly",
+                description: "Perfect for individuals, couples, and families"
+              }
+            ].map((benefit, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
@@ -287,11 +357,11 @@ const LandingPage = () => {
                 viewport={{ once: true }}
                 className="text-center"
               >
-                <div className="w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <span className="text-white font-bold text-lg">{tech.name[0]}</span>
+                <div className="w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <benefit.icon className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{tech.name}</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">{tech.description}</p>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{benefit.title}</h3>
+                <p className="text-gray-600 dark:text-gray-300 text-sm">{benefit.description}</p>
               </motion.div>
             ))}
           </div>
@@ -311,8 +381,8 @@ const LandingPage = () => {
               Ready to Start Your Memory Journey?
             </h2>
             <p className="text-xl text-purple-100 mb-12 max-w-2xl mx-auto">
-              Join thousands of users who are already preserving their precious memories with MemoryLane Personal.
-              Start creating your digital timeline today!
+              Join thousands of families who are already preserving their precious memories with MemoryLane.
+              Start creating your digital legacy today!
             </p>
             <Link
               to="/register"
@@ -321,6 +391,9 @@ const LandingPage = () => {
               Get Started for Free
               <ArrowRight className="w-5 h-5" />
             </Link>
+            <p className="text-purple-200 text-sm mt-4">
+              No credit card required • Start preserving memories in seconds
+            </p>
           </motion.div>
         </div>
       </section>

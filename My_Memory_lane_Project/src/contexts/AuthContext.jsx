@@ -22,11 +22,14 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      console.log('Auth state changed:', user);
       setUser(user);
       setLoading(false);
+      setAuthChecked(true);
     });
 
     return unsubscribe;
@@ -36,7 +39,9 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       const { user } = await createUserWithEmailAndPassword(auth, email, password);
-      await updateProfile(user, { displayName });
+      if (displayName) {
+        await updateProfile(user, { displayName });
+      }
       toast.success('Account created successfully! Welcome to MemoryLane!');
       return user;
     } catch (error) {
@@ -99,8 +104,10 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await signOut(auth);
+      setUser(null);
       toast.success('Logged out successfully');
     } catch (error) {
+      console.error('Logout error:', error);
       toast.error('Logout failed');
     }
   };
@@ -110,7 +117,8 @@ export const AuthProvider = ({ children }) => {
     register,
     login,
     logout,
-    loading
+    loading,
+    authChecked
   };
 
   return (

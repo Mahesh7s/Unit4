@@ -1,31 +1,51 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
-import { getUserMemories, deleteMemory, updateMemory, getRandomMemory, searchMemories } from '../services/memoryService';
+import { getUserMemories, deleteMemory, updateMemory, getRandomMemory, searchMemories, getUserAlbums, addMemoryToAlbum } from '../services/memoryService';
 import { generateShareableLink } from '../utils/mediaUtils';
 import { exportMemoriesToPDF } from '../utils/exportUtils';
 import MemoryCard from '../components/MemoryCard';
 import CreateMemoryModal from '../components/CreateMemoryModal';
-import { Plus, Calendar, Search, Filter, Shuffle, Sparkles, Download, Share2, X } from 'lucide-react';
+import { Plus, Calendar, Search, Filter, Shuffle, Sparkles, Download, Share2, X, FolderPlus } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useLocation, useNavigate } from 'react-router-dom';
 
-const Dashboard = ({ openCreateModal = false }) => {
+const Dashboard = () => {
   const { user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  
   const [memories, setMemories] = useState([]);
   const [filteredMemories, setFilteredMemories] = useState([]);
+  const [albums, setAlbums] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(openCreateModal);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingMemory, setEditingMemory] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterTag, setFilterTag] = useState('');
   const [showReminisce, setShowReminisce] = useState(false);
   const [reminisceMemory, setReminisceMemory] = useState(null);
   const [shareModalMemory, setShareModalMemory] = useState(null);
+  const [albumModalMemory, setAlbumModalMemory] = useState(null);
 
   const allTags = [...new Set(memories.flatMap(memory => memory.tags || []))];
 
+  // Check URL for create parameter on component mount and URL changes
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const shouldOpenCreateModal = urlParams.get('create') === 'true';
+    
+    if (shouldOpenCreateModal) {
+      setIsCreateModalOpen(true);
+      // Clean up the URL
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, [location.search]);
+
   useEffect(() => {
     loadMemories();
+    loadAlbums();
   }, [user]);
 
   useEffect(() => {
@@ -46,6 +66,17 @@ const Dashboard = ({ openCreateModal = false }) => {
     }
   };
 
+  const loadAlbums = async () => {
+    if (!user) return;
+    
+    try {
+      const userAlbums = await getUserAlbums(user.uid);
+      setAlbums(userAlbums);
+    } catch (error) {
+      console.error('Error loading albums:', error);
+    }
+  };
+
   const filterMemories = async () => {
     if (!user) return;
     
@@ -58,6 +89,15 @@ const Dashboard = ({ openCreateModal = false }) => {
       console.error('Error filtering memories:', error);
       setFilteredMemories(memories);
     }
+  };
+
+  const handleCreateMemory = () => {
+    setIsCreateModalOpen(true);
+  };
+
+  const handleCloseCreateModal = () => {
+    setIsCreateModalOpen(false);
+    setEditingMemory(null);
   };
 
   const handleDeleteMemory = async (memoryId) => {
@@ -91,6 +131,28 @@ const Dashboard = ({ openCreateModal = false }) => {
       setEditingMemory(null);
     } catch (error) {
       toast.error('Failed to update memory');
+    }
+  };
+
+  const handleAddToAlbum = (memory) => {
+    if (albums.length === 0) {
+      toast.error('Please create an album first');
+      navigate('/albums');
+      return;
+    }
+    setAlbumModalMemory(memory);
+  };
+
+  const handleAddMemoryToAlbum = async (albumId) => {
+    if (!albumModalMemory) return;
+    
+    try {
+      await addMemoryToAlbum(user.uid, albumId, albumModalMemory.id);
+      await loadAlbums(); // Refresh albums to get updated memory counts
+      toast.success('Memory added to album!');
+      setAlbumModalMemory(null);
+    } catch (error) {
+      toast.error('Failed to add memory to album');
     }
   };
 
@@ -224,7 +286,7 @@ const Dashboard = ({ openCreateModal = false }) => {
             </button>
             
             <button
-              onClick={() => setIsCreateModalOpen(true)}
+              onClick={handleCreateMemory}
               className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-300"
             >
               <Plus className="w-5 h-5" />
@@ -254,6 +316,7 @@ const Dashboard = ({ openCreateModal = false }) => {
                   onEdit={handleEditMemory}
                   onDelete={handleDeleteMemory}
                   onShare={handleShareMemory}
+                  onAddToAlbum={handleAddToAlbum}
                 />
               ))}
             </div>
@@ -283,7 +346,7 @@ const Dashboard = ({ openCreateModal = false }) => {
                   <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No memories yet</h3>
                   <p className="text-gray-600 dark:text-gray-400 mb-6">Start creating your first memory to begin your journey</p>
                   <button
-                    onClick={() => setIsCreateModalOpen(true)}
+                    onClick={handleCreateMemory}
                     className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-300"
                   >
                     Create Your First Memory
@@ -305,6 +368,7 @@ const Dashboard = ({ openCreateModal = false }) => {
                   onEdit={handleEditMemory}
                   onDelete={handleDeleteMemory}
                   onShare={handleShareMemory}
+                  onAddToAlbum={handleAddToAlbum}
                 />
               ))}
             </div>
@@ -314,10 +378,7 @@ const Dashboard = ({ openCreateModal = false }) => {
         {/* Create Memory Modal */}
         <CreateMemoryModal
           isOpen={isCreateModalOpen}
-          onClose={() => {
-            setIsCreateModalOpen(false);
-            setEditingMemory(null);
-          }}
+          onClose={handleCloseCreateModal}
           onSubmit={editingMemory ? handleUpdateMemory : loadMemories}
           editingMemory={editingMemory}
         />
@@ -354,6 +415,7 @@ const Dashboard = ({ openCreateModal = false }) => {
                     onEdit={handleEditMemory}
                     onDelete={handleDeleteMemory}
                     onShare={handleShareMemory}
+                    onAddToAlbum={handleAddToAlbum}
                     className="shadow-none border border-gray-200 dark:border-gray-700"
                   />
                 </div>
@@ -428,6 +490,81 @@ const Dashboard = ({ openCreateModal = false }) => {
                       <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
                         This memory is private. Make it public to share with others.
                       </p>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Add to Album Modal */}
+        <AnimatePresence>
+          {albumModalMemory && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                onClick={() => setAlbumModalMemory(null)}
+              />
+              
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md"
+              >
+                <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700">
+                  <div className="flex items-center gap-2">
+                    <FolderPlus className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Add to Album</h3>
+                  </div>
+                  <button
+                    onClick={() => setAlbumModalMemory(null)}
+                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors duration-200"
+                  >
+                    <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                  </button>
+                </div>
+                
+                <div className="p-6 space-y-4">
+                  <div>
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-2">{albumModalMemory.title}</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{albumModalMemory.description}</p>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <h5 className="font-medium text-gray-900 dark:text-white">Select an album:</h5>
+                    {albums.length === 0 ? (
+                      <div className="text-center py-4">
+                        <p className="text-gray-500 dark:text-gray-400 mb-4">No albums found</p>
+                        <button
+                          onClick={() => {
+                            setAlbumModalMemory(null);
+                            navigate('/albums');
+                          }}
+                          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200"
+                        >
+                          Create Album
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-2 max-h-60 overflow-y-auto">
+                        {albums.map((album) => (
+                          <button
+                            key={album.id}
+                            onClick={() => handleAddMemoryToAlbum(album.id)}
+                            className="w-full p-3 text-left border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                          >
+                            <div className="font-medium text-gray-900 dark:text-white">{album.title}</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                              {(album.memoryIds || []).length} memories
+                            </div>
+                          </button>
+                        ))}
+                      </div>
                     )}
                   </div>
                 </div>

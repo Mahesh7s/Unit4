@@ -1,25 +1,76 @@
+// src/services/memoryService.js
+
 import { database } from '../firebase/config';
-import { ref, push, set, get, query, orderByChild, equalTo, remove, update, orderByKey, limitToLast } from 'firebase/database';
+import { ref, push, set, get, remove, update } from 'firebase/database';
+
+// Helper function to clean data and remove undefined/null values
+const cleanData = (data) => {
+  const cleaned = {};
+  Object.keys(data).forEach(key => {
+    const value = data[key];
+    if (value !== undefined && value !== null) {
+      if (Array.isArray(value)) {
+        // Clean each item in the array
+        cleaned[key] = value.map(item => 
+          typeof item === 'object' ? cleanData(item) : item
+        );
+      } else if (typeof value === 'object' && !(value instanceof Date)) {
+        // Recursively clean nested objects
+        cleaned[key] = cleanData(value);
+      } else {
+        cleaned[key] = value;
+      }
+    }
+  });
+  return cleaned;
+};
 
 export const createMemory = async (userId, memoryData) => {
   try {
     const memoriesRef = ref(database, `memories/${userId}`);
     const newMemoryRef = push(memoriesRef);
     
+    // Clean the memory data first
+    const cleanMemoryData = cleanData(memoryData);
+    
     const memory = {
-      ...memoryData,
+      ...cleanMemoryData,
       id: newMemoryRef.key,
       createdAt: Date.now(),
       updatedAt: Date.now(),
       userId,
-      // Ensure media fields are properly stored
-      mediaUrl: memoryData.mediaUrl || null,
-      mediaType: memoryData.mediaType || null,
-      mediaPublicId: memoryData.mediaPublicId || null,
-      mediaFormat: memoryData.mediaFormat || null
+      // Ensure all fields have proper fallbacks
+      title: cleanMemoryData.title || 'Untitled Memory',
+      description: cleanMemoryData.description || '',
+      location: cleanMemoryData.location || '',
+      tags: cleanMemoryData.tags || [],
+      isMilestone: cleanMemoryData.isMilestone || false,
+      isPublic: cleanMemoryData.isPublic || false,
+      date: cleanMemoryData.date || new Date().toISOString().split('T')[0],
+      // Media handling with proper defaults
+      mediaUrl: cleanMemoryData.mediaUrl || '',
+      mediaType: cleanMemoryData.mediaType || '',
+      mediaPublicId: cleanMemoryData.mediaPublicId || '',
+      mediaFormat: cleanMemoryData.mediaFormat || '',
+      // Multiple media support with cleaned arrays
+      mediaFiles: (cleanMemoryData.mediaFiles || []).map(file => ({
+        url: file.url || '',
+        type: file.type || '',
+        publicId: file.publicId || '',
+        format: file.format || '',
+        originalName: file.originalName || '',
+        size: file.size || 0,
+        duration: file.duration || 0 // Ensure duration is always a number
+      })),
+      mediaCount: cleanMemoryData.mediaCount || 0
     };
     
-    await set(newMemoryRef, memory);
+    console.log('Creating memory in Firebase:', memory);
+    
+    // Clean the final memory object before saving
+    const finalMemory = cleanData(memory);
+    
+    await set(newMemoryRef, finalMemory);
     return memory;
   } catch (error) {
     console.error('Error creating memory:', error);
@@ -33,7 +84,42 @@ export const getUserMemories = async (userId) => {
     const snapshot = await get(memoriesRef);
     
     if (snapshot.exists()) {
-      const memories = Object.values(snapshot.val());
+      const memoriesData = snapshot.val();
+      const memories = Object.keys(memoriesData).map(key => {
+        const memory = memoriesData[key];
+        // Clean up any undefined values and ensure proper structure
+        return {
+          id: key,
+          title: memory.title || 'Untitled Memory',
+          description: memory.description || '',
+          date: memory.date || new Date().toISOString().split('T')[0],
+          location: memory.location || '',
+          tags: memory.tags || [],
+          isMilestone: memory.isMilestone || false,
+          isPublic: memory.isPublic || false,
+          mediaUrl: memory.mediaUrl || '',
+          mediaType: memory.mediaType || '',
+          mediaPublicId: memory.mediaPublicId || '',
+          mediaFormat: memory.mediaFormat || '',
+          mediaFiles: (memory.mediaFiles || []).map(file => ({
+            url: file.url || '',
+            type: file.type || '',
+            publicId: file.publicId || '',
+            format: file.format || '',
+            originalName: file.originalName || '',
+            size: file.size || 0,
+            duration: file.duration || 0
+          })),
+          mediaCount: memory.mediaCount || 0,
+          createdAt: memory.createdAt || Date.now(),
+          updatedAt: memory.updatedAt || Date.now(),
+          userId: memory.userId || userId
+        };
+      });
+      
+      console.log('Retrieved memories from Firebase:', memories.length, 'memories');
+      
+      // Sort by date descending (newest first)
       return memories.sort((a, b) => new Date(b.date) - new Date(a.date));
     }
     return [];
@@ -56,10 +142,18 @@ export const deleteMemory = async (userId, memoryId) => {
 export const updateMemory = async (userId, memoryId, updates) => {
   try {
     const memoryRef = ref(database, `memories/${userId}/${memoryId}`);
-    await update(memoryRef, {
-      ...updates,
+    
+    // Clean up updates to remove undefined values
+    const cleanUpdates = cleanData(updates);
+    
+    const updateData = {
+      ...cleanUpdates,
       updatedAt: Date.now()
-    });
+    };
+    
+    console.log('Updating memory in Firebase:', updateData);
+    
+    await update(memoryRef, updateData);
   } catch (error) {
     console.error('Error updating memory:', error);
     throw error;
@@ -94,7 +188,11 @@ export const getUserAlbums = async (userId) => {
     const snapshot = await get(albumsRef);
     
     if (snapshot.exists()) {
-      return Object.values(snapshot.val());
+      const albumsData = snapshot.val();
+      return Object.keys(albumsData).map(key => ({
+        ...albumsData[key],
+        id: key
+      }));
     }
     return [];
   } catch (error) {
@@ -152,8 +250,8 @@ export const searchMemories = async (userId, searchTerm, filters = {}) => {
     
     return memories.filter(memory => {
       const matchesSearch = !searchTerm || 
-        memory.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        memory.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        memory.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        memory.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         memory.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         memory.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
       

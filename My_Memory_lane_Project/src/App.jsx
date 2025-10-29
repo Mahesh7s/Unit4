@@ -11,9 +11,10 @@ import AlbumsPage from './pages/AlbumsPage';
 import SearchPage from './pages/SearchPage';
 
 const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, authChecked } = useAuth();
   
-  if (loading) {
+  // Show loading spinner while checking authentication
+  if (loading || !authChecked) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900 flex items-center justify-center">
         <div className="text-center">
@@ -24,13 +25,19 @@ const ProtectedRoute = ({ children }) => {
     );
   }
   
-  return user ? children : <Navigate to="/login" />;
+  // Redirect to login if not authenticated
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
+  
+  return children;
 };
 
 const PublicRoute = ({ children }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, authChecked } = useAuth();
   
-  if (loading) {
+  // Show loading spinner while checking authentication
+  if (loading || !authChecked) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900 flex items-center justify-center">
         <div className="text-center">
@@ -41,7 +48,12 @@ const PublicRoute = ({ children }) => {
     );
   }
   
-  return user ? <Navigate to="/dashboard" /> : children;
+  // Redirect to dashboard if already authenticated
+  if (user) {
+    return <Navigate to="/dashboard" />;
+  }
+  
+  return children;
 };
 
 function App() {
@@ -52,6 +64,7 @@ function App() {
           <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900">
             <Navbar />
             <Routes>
+              {/* Public routes */}
               <Route path="/" element={<LandingPage />} />
               <Route 
                 path="/login" 
@@ -69,19 +82,13 @@ function App() {
                   </PublicRoute>
                 } 
               />
+              
+              {/* Protected routes */}
               <Route 
                 path="/dashboard" 
                 element={
                   <ProtectedRoute>
                     <Dashboard />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/create" 
-                element={
-                  <ProtectedRoute>
-                    <Dashboard openCreateModal={true} />
                   </ProtectedRoute>
                 } 
               />
@@ -101,6 +108,8 @@ function App() {
                   </ProtectedRoute>
                 } 
               />
+              
+              {/* Catch all route */}
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
             <Toaster

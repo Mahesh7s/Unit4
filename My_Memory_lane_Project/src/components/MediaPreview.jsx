@@ -15,19 +15,28 @@ const MediaPreview = ({
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   
-  // Debug logging
-  console.log('MediaPreview props:', { url, propMediaType, title });
+  // Use prop mediaType if provided, otherwise detect from URL
+  const mediaType = propMediaType || getMediaType(url);
   
-  const mediaType = propMediaType || getMediaType(url) || 'image';
-  console.log('Determined media type:', mediaType);
-
   const handleLoad = () => setIsLoading(false);
   const handleError = () => {
     setIsLoading(false);
     setHasError(true);
+    console.error('Failed to load media:', url);
   };
 
   const renderMedia = () => {
+    if (!url) {
+      return (
+        <div className="bg-gray-200 dark:bg-gray-700 rounded-lg p-6 flex items-center justify-center min-h-[200px]">
+          <div className="text-center">
+            <ImageIcon className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+            <p className="text-gray-500 dark:text-gray-400">No media available</p>
+          </div>
+        </div>
+      );
+    }
+
     if (hasError) {
       return (
         <div className="bg-gray-200 dark:bg-gray-700 rounded-lg p-6 flex items-center justify-center min-h-[200px]">
@@ -152,7 +161,7 @@ const MediaPreview = ({
           <div className="bg-gray-200 dark:bg-gray-700 rounded-lg p-6 flex items-center justify-center min-h-[120px]">
             <div className="text-center">
               <ImageIcon className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-              <p className="text-gray-500 dark:text-gray-400">Media preview not available</p>
+              <p className="text-gray-500 dark:text-gray-400">Unsupported media type</p>
             </div>
           </div>
         );

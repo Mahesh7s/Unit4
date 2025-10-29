@@ -1,54 +1,51 @@
+// src/utils/mediaUtils.js
+
 export const getMediaType = (url) => {
   if (!url) return 'unknown';
   
-  console.log('Getting media type for URL:', url);
-  
   // Check file extension
   const extension = url.split('.').pop()?.toLowerCase()?.split('?')[0] || '';
-  console.log('File extension:', extension);
   
-  if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(extension)) {
-    console.log('Detected as image');
+  if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'].includes(extension)) {
     return 'image';
   }
   
-  if (['mp4', 'avi', 'mov', 'wmv', 'webm', 'mkv'].includes(extension)) {
-    console.log('Detected as video');
+  if (['mp4', 'avi', 'mov', 'wmv', 'webm', 'mkv', 'flv'].includes(extension)) {
     return 'video';
   }
   
-  if (['mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac'].includes(extension)) {
-    console.log('Detected as audio');
+  if (['mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac', 'wma'].includes(extension)) {
     return 'audio';
   }
   
   // Check Cloudinary resource type in URL
   if (url.includes('cloudinary.com')) {
-    if (url.includes('/video/upload/')) {
-      console.log('Cloudinary video detected');
+    if (url.includes('/video/') || url.includes('/upload/') && url.match(/\.(mp4|mov|avi|webm)$/)) {
       return 'video';
     }
-    if (url.includes('/image/upload/')) {
-      console.log('Cloudinary image detected');
+    if (url.includes('/image/') || url.includes('/upload/') && url.match(/\.(jpg|jpeg|png|gif|webp)$/)) {
       return 'image';
     }
-    // Default to image for Cloudinary URLs
-    console.log('Cloudinary default to image');
-    return 'image';
+    // For audio files uploaded as video resource type
+    if (url.match(/\.(mp3|wav|ogg|m4a|aac|flac)$/)) {
+      return 'audio';
+    }
   }
   
-  // Default to image if we can't determine the type
-  console.log('Defaulting to image');
-  return 'image';
+  return 'unknown';
 };
 
 export const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  } catch (error) {
+    return 'Invalid date';
+  }
 };
 
 export const formatFileSize = (bytes) => {
@@ -69,9 +66,9 @@ export const validateFile = (file, type = 'image') => {
   };
   
   const allowedTypes = {
-    image: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
-    video: ['video/mp4', 'video/avi', 'video/mov', 'video/wmv', 'video/webm'],
-    audio: ['audio/mp3', 'audio/wav', 'audio/ogg', 'audio/m4a', 'audio/aac']
+    image: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'],
+    video: ['video/mp4', 'video/avi', 'video/mov', 'video/wmv', 'video/webm', 'video/quicktime'],
+    audio: ['audio/mp3', 'audio/wav', 'audio/ogg', 'audio/m4a', 'audio/aac', 'audio/flac', 'audio/x-m4a']
   };
   
   if (file.size > maxSizes[type]) {
@@ -123,14 +120,32 @@ export const getOptimizedImageUrl = (url, options = {}) => {
   
   const { width = 800, height = 600, quality = 'auto', format = 'auto' } = options;
   
-  // Insert transformation parameters into Cloudinary URL
-  const transformations = `w_${width},h_${height},c_fill,q_${quality},f_${format}`;
-  return url.replace('/upload/', `/upload/${transformations}/`);
+  try {
+    // Insert transformation parameters into Cloudinary URL
+    const transformations = `w_${width},h_${height},c_fill,q_${quality},f_${format}`;
+    
+    if (url.includes('/upload/')) {
+      return url.replace('/upload/', `/upload/${transformations}/`);
+    }
+    
+    return url;
+  } catch (error) {
+    console.error('Error optimizing image URL:', error);
+    return url;
+  }
 };
 
 export const getVideoThumbnail = (videoUrl) => {
   if (!videoUrl || !videoUrl.includes('cloudinary.com')) return null;
   
-  // Generate thumbnail from video
-  return videoUrl.replace('/upload/', '/upload/w_400,h_300,c_fill,so_0/').replace(/\.(mp4|mov|avi)$/, '.jpg');
+  try {
+    // Generate thumbnail from video
+    if (videoUrl.includes('/upload/')) {
+      return videoUrl.replace('/upload/', '/upload/w_400,h_300,c_fill,so_0/').replace(/\.(mp4|mov|avi|webm)$/, '.jpg');
+    }
+    return null;
+  } catch (error) {
+    console.error('Error generating video thumbnail:', error);
+    return null;
+  }
 };
